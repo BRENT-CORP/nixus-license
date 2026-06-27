@@ -28,5 +28,5 @@ module.exports = function handler(req, res) {
     return res.json({ valid: true });
   }
 
-  return res.json({ valid: false, error: "Invalid license key" });
+  return res.json({ valid: false, error: "Invalid license key", _debug: { received: normalized, validCount: validKeys.length } });
 };
