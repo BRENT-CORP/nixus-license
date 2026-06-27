@@ -8,17 +8,19 @@ module.exports = function handler(req, res) {
   const { key } = req.body || {};
   if (!key) return res.json({ valid: false, error: "No key provided" });
 
+  const strip = (k) => k.replace(/[^A-Z0-9]/g, "").toUpperCase();
+
   const validKeys = (process.env.VALID_KEYS || "")
     .split(",")
-    .map((k) => k.trim().toUpperCase())
+    .map(strip)
     .filter(Boolean);
 
   const revokedKeys = (process.env.REVOKED_KEYS || "")
     .split(",")
-    .map((k) => k.trim().toUpperCase())
+    .map(strip)
     .filter(Boolean);
 
-  const normalized = key.trim().toUpperCase();
+  const normalized = strip(key);
 
   if (revokedKeys.includes(normalized)) {
     return res.json({ valid: false, error: "License revoked" });
@@ -28,5 +30,5 @@ module.exports = function handler(req, res) {
     return res.json({ valid: true });
   }
 
-  return res.json({ valid: false, error: "Invalid license key", _debug: { received: normalized, validCount: validKeys.length } });
+  return res.json({ valid: false, error: "Invalid license key" });
 };
