@@ -86,16 +86,16 @@
     btn.disabled = true; btn.textContent = 'CHECKING...';
 
     try {
-      const res = await fetch('/api/validate?key=' + encodeURIComponent(key));
+      const res = await fetch('/api/status?key=' + encodeURIComponent(key));
       const data = await res.json();
-      showResult(key, data.valid);
+      showResult(key, data);
     } catch(e) {
-      showResult(key, false);
+      showResult(key, { valid: false, status: 'error' });
     }
     btn.disabled = false; btn.textContent = 'CHECK STATUS';
   }
 
-  function showResult(key, valid) {
+  function showResult(key, data) {
     const box = document.getElementById('status-box');
     const icon = document.getElementById('icon');
     const label = document.getElementById('label');
@@ -104,17 +104,16 @@
     const expiredContent = document.getElementById('expiredContent');
     const daysBadge = document.getElementById('daysBadge');
 
-    box.className = 'status-box ' + (valid ? 'active' : 'expired');
-    icon.textContent = valid ? '✓' : '✗';
-    label.textContent = valid ? 'LICENSE ACTIVE' : 'EXPIRED / INVALID';
+    const active = data.valid && data.status === 'active';
+    box.className = 'status-box ' + (active ? 'active' : 'expired');
+    icon.textContent = active ? '✓' : '✗';
+    label.textContent = active ? 'LICENSE ACTIVE' : (data.status === 'expired' ? 'LICENSE EXPIRED' : 'INVALID / NOT FOUND');
     keyDisplay.textContent = key;
 
-    if (valid) {
+    if (active) {
       activeContent.style.display = 'block';
       expiredContent.style.display = 'none';
-      daysBadge.textContent = '30';
-      // Note: exact days shown as 30 max since server doesn't track activation date
-      // The Athena app tracks the precise expiry locally
+      daysBadge.textContent = data.days_left;
     } else {
       activeContent.style.display = 'none';
       expiredContent.style.display = 'block';
